@@ -1,0 +1,27 @@
+﻿version: "3.9"
+networks:
+  traefik-public:
+    external: true
+
+services:
+  admin-front:
+    image: cr.yandex/IMAGE/conversations-api-admin:main
+    restart: unless-stopped
+    env_file:
+      - .env
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.http.middlewares.admin-auth.basicauth.users=admin:$$2y$$05$$3YNHj1rVD6CqCIJqIxXs2eqi57vbxoSkiTB0o33gdm3sjaICc8Nsi
+      - traefik.http.routers.conversations-api-admin.middlewares=admin-auth
+      - traefik.http.routers.conversations-api-admin.rule=Host(`DOMAIN`)
+      - traefik.http.routers.conversations-api-admin-http.entrypoints=http
+      - traefik.http.routers.conversations-api-admin-http.service=conversations-api-admin
+      - traefik.http.routers.conversations-api-admin-http.rule=Host(`DOMAIN`)
+      - traefik.http.routers.conversations-api-admin-http.middlewares=https-redirect
+      - traefik.http.routers.conversations-api-admin.entrypoints=https
+      - traefik.http.routers.conversations-api-admin.tls=true
+      - traefik.http.routers.conversations-api-admin.tls.certresolver=le
+      - traefik.http.services.conversations-api-admin.loadbalancer.server.port=80
+    networks:
+      - traefik-public
